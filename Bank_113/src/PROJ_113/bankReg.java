@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -106,54 +107,40 @@ public bankReg() {
 
 @Override
 public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == registerButton) {
-			
-		bankReg.name = nameField.getText();
-		bankReg.PIN = pinField.getText();
-		bankReg.depositStr = depositField.getText();
-		//check if the name and PIN is not input if the user is pressing the register button
-		if (bankReg.name.isEmpty() || bankReg.PIN.isEmpty() || bankReg.depositStr.isEmpty()) {
-			JOptionPane.showMessageDialog(null, "Please fill up the requirements so that you can create an account.", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-			}
-				
-		// Validate ID input to ensure it contains only numbers
-		try {
-			int pinNumber = Integer.parseInt(bankReg.PIN);
-			} catch (NumberFormatException ex) {
-			 JOptionPane.showMessageDialog(null, "PIN must contain only numbers.", "Error", JOptionPane.ERROR_MESSAGE);
-			 return;
-			}
+    if (e.getSource() == registerButton) {
+        String name = nameField.getText();
+        String pin = pinField.getText();
+        String depositStr = depositField.getText();
 
-		// Validate name input to ensure it does not contain numbers
-		if (bankReg.name.chars().anyMatch(Character::isDigit)) {
-			JOptionPane.showMessageDialog(null, "Name cannot contain numbers. Please enter a valid name.", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-			}
-			
-		//to limit 4 pin
-		if (bankReg.PIN.length() != 6) {
-			JOptionPane.showMessageDialog(null, "PIN must be exactly six digits long.", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-			}
-				
-		try {
-			float amount = Float.parseFloat(bankReg.depositStr);
-				if (amount < 3000) {
-				JOptionPane.showMessageDialog(null, "Minimum deposit amount is 3000.", "Error", JOptionPane.ERROR_MESSAGE);
-				}else {
-				// Call the deposit method in BankAcc and save the deposit amount
-			    bankAccount.deposit(amount);
-				// Open the next class if registration is successful  
-				new pin(bankAccount);
-				frame.dispose();		      
-				JOptionPane.showMessageDialog(null, "Registration successful! Welcome, " +bankReg.name + "!");
-				}
-	     }catch (NumberFormatException ex) {
-		JOptionPane.showMessageDialog(null, "Invalid deposit amount.", "Error", JOptionPane.ERROR_MESSAGE);
-		}
-	  }
-	}			
+        if (name.isEmpty() || pin.isEmpty() || depositStr.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please fill all fields.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (pin.length() != 6 || !pin.matches("\\d+")) {
+            JOptionPane.showMessageDialog(null, "PIN must be 6 digits.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            float deposit = Float.parseFloat(depositStr);
+            if (deposit < 3000) {
+                JOptionPane.showMessageDialog(null, "Minimum deposit is 3000.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            DatabaseHandler.saveUser(name, pin, deposit);
+            JOptionPane.showMessageDialog(null, "Registration successful!");
+            new pin(pin);
+            frame.dispose();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Invalid deposit amount.", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
 }
 
 	

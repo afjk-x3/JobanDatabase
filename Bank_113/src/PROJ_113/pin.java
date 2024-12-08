@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -21,8 +22,8 @@ public class pin extends bankAcc implements ActionListener{
 	JButton exitButton;
 	private bankAcc bankAccount;
 	
-public pin(bankAcc bankAccount){
-	this.bankAccount = bankAccount;
+public pin(String pin){
+	this.bankAccount = pin;
 		
 		//LABEL TITLE  DESIGN
 	    JLabel label = new JLabel();
@@ -70,35 +71,21 @@ public pin(bankAcc bankAccount){
 
 @Override
 public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == enterButton) {
-		String pin = String.valueOf(pinField.getPassword());
-		
-		//check if there is no input
-		if (pin.isEmpty()) {
-			JOptionPane.showMessageDialog(null, "No input, please try again.", "Error", JOptionPane.ERROR_MESSAGE);
-		    return;
-		}
-		
-		try {
-		    int pinNumber = Integer.parseInt(pin);
-		} catch (NumberFormatException ex) {
-		    JOptionPane.showMessageDialog(null, "PIN must contain only numbers.", "Error", JOptionPane.ERROR_MESSAGE);
-		    return;
-		}
-		
-		//to limit 6 pin
-		if (pin.length() != 6) {
-		    JOptionPane.showMessageDialog(null, "PIN must be exactly six digits long.", "Information", JOptionPane.INFORMATION_MESSAGE);
-		    return;
-		}
-						
-		if (pin.equals(bankReg.PIN)) { // ensure if the user will input the same pin that the user input in registration
-            new ATM(bankAccount);
-            frame.dispose(); // Close the current frame
-        }else {
-			JOptionPane.showMessageDialog( null,"Incorrect PIN!!", "ERROR", JOptionPane.ERROR_MESSAGE);
-		}
-	}
+    if (e.getSource() == enterButton) {
+        String enteredPin = String.valueOf(pinField.getPassword());
+
+        try {
+            if (DatabaseHandler.validatePin(enteredPin)) {
+                JOptionPane.showMessageDialog(null, "Login successful!");
+                new ATM(new bankAcc());
+                frame.dispose();
+            } else {
+                JOptionPane.showMessageDialog(null, "Invalid PIN!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }
 
 	
